@@ -4,6 +4,11 @@
 #define noinl __declspec(noinline)
 #define interpret_bytes(arg) reinterpret_cast<BYTE*>(arg)
 
+#ifdef TARGET_SERVER
+#define PET_ADD_XP_OFFSET 0x000d6309 // Server.exe
+#else
+#define PET_ADD_XP_OFFSET 0x001a0d39 // Cube.exe
+#endif
 
 extern "C" __declspec(dllexport) noinl int __stdcall CalculateCorrectedXP(int added_xp, cube::Creature* player, cube::Creature* pet) {
     float difference = ((float)player->level) / ((float)pet->level);
@@ -96,8 +101,8 @@ extern "C" __declspec(dllexport) bool  APIENTRY DllMain( HMODULE hModule,
         //OpenConsole();
         
         cube::SetBase((uint32_t)GetModuleHandle(NULL));
-        jump_back = cube::Offset(0x001a0d3f);
-        WriteCall(interpret_bytes(cube::Offset(0x001a0d39)), interpret_bytes(PetCalculateAddXP_ptr));
+        jump_back = cube::Offset(PET_ADD_XP_OFFSET + 6);
+        WriteCall(interpret_bytes(cube::Offset(PET_ADD_XP_OFFSET)), interpret_bytes(PetCalculateAddXP_ptr));
         
     }
     else if (ul_reason_for_call == DLL_PROCESS_DETACH) 
