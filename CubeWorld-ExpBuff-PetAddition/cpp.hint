@@ -1,2 +1,0 @@
-#define ALLOCCRASHFIX_API __declspec(dllexport)
-#define ALLOCCRASHFIX_API __declspec(dllimport)
