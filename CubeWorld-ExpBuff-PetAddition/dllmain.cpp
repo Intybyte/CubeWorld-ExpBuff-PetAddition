@@ -4,24 +4,8 @@
 #define noinl __declspec(noinline)
 #define interpret_bytes(arg) reinterpret_cast<BYTE*>(arg)
 
-cube::GameController* GameController = nullptr;
 
-extern "C" __declspec(dllexport) noinl int __stdcall CalculateCorrectedXP(int added_xp, cube::Creature* pet) {
-    if (GameController == nullptr) {
-        GameController = cube::GetGameController();
-    }
-    
-    if (GameController == NULL || GameController->shutdown) {
-        //keep doing whatever you where doing
-        return added_xp;
-    }
-
-    cube::Creature* player = GameController->GetLocalPlayer();
-    if (player->GUID != pet->parent_GUID) { // not a pet
-        //keep doing whatever you where doing
-        return added_xp;
-    }
-
+extern "C" __declspec(dllexport) noinl int __stdcall CalculateCorrectedXP(int added_xp, cube::Creature* player, cube::Creature* pet) {
     float difference = ((float)player->level) / ((float)pet->level);
     difference = max(difference, 1.0);
     float added_xp_corrected = ((float)added_xp) * difference;
@@ -53,6 +37,7 @@ extern "C" __declspec(dllexport) __declspec(naked) noinl void PetCalculateAddXP_
         mov ebp, esp
 
         push edi                  // param pet
+        push ebx                  // param player
         push eax                  // param added_xp
         call CalculateCorrectedXP
 
