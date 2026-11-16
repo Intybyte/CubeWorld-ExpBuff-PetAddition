@@ -1,0 +1,67 @@
+
+name: MSBuild
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+env:
+  SOLUTION_FILE_PATH: .
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v3
+
+    - name: Restore NuGet packages
+      working-directory: ${{ github.workspace }}
+      run: nuget restore ${{ env.SOLUTION_FILE_PATH }}
+
+    # Build Release
+    - name: Build Release
+      working-directory: ${{ github.workspace }}
+      run: >
+        msbuild /m
+        /p:Configuration=Release
+        ${{ env.SOLUTION_FILE_PATH }}
+
+    # Build ReleaseServer
+    - name: Build ReleaseServer
+      working-directory: ${{ github.workspace }}
+      run: >
+        msbuild /m
+        /p:Configuration=ReleaseServer
+        ${{ env.SOLUTION_FILE_PATH }}
+
+    # Upload Release binaries
+    - name: Upload Release artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: Release
+        path: |
+          **/Release/*.exe
+          **/Release/*.dll
+          **/Release/*.lib
+        if-no-files-found: warn
+
+    # Upload ReleaseServer binaries
+    - name: Upload ReleaseServer artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ReleaseServer
+        path: |
+          **/ReleaseServer/*.exe
+          **/ReleaseServer/*.dll
+          **/ReleaseServer/*.lib
+        if-no-files-found: warn
